@@ -1,0 +1,113 @@
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <cstdlib>
+#include <windows.h>
+#include <string>
+using namespace std;
+string sprite1[] = {
+    "..................................................",
+    "...........=*#%%%%##+-............................",
+    "...........:+%%##+==-+:....................--=====",
+    ".............+*+===+=-................:==--==++--:",
+    ".............-====++=:............-=*##+======++=:",
+    ".............--==+**--==-:.:--=+####%%%*===+=::...",
+    "...........-+=--+%%%%%%%######%%%%%%%%%%#+%*......",
+    ".......:=*%%*+=*%%%%%%%%%%%%%%%%%%%%%#*+=-:.......",
+    "......=%%%%#**#%%%%%%%%%%%%%%%%%%#+=:.............",
+    ".....:#%%%%##%%%%%%%%%%%%%%#*=-:..................",
+    "....:*%%%%%%%%%%%%%%%%%%%+:.......................",
+    "....+%%%%%%%%%%%%%%%%%%#-.........................",
+    "...=%%%%%%@%%%%%%%%%%##+..........................",
+    "..:#%%%@%%%%%%%%%%%%%#*=..........................",
+    ".:+%%%%%%%%%%%%%%%%%##+...........................",
+    ".=%%%%#%%%%%%%%%%%%%##+...........................",
+};
+string sprite2[] = {
+    "........................:.........................",
+    "........................:%%%%%#=..................",
+    ".........................#=*=-:+..................",
+    ".......................=#==-:-:...................",
+    "..................%%%%%%#-==::....................",
+    ".................%%###%%%:=+:###-.................",
+    "...............%%%##%####.#.#####:................",
+    "..............%%%##%######*+###%##................",
+    ".............%%%%#%%%#########%%%#*...............",
+    "............%%%%#%%%%%%%%%###-.#%%#*..............",
+    "...........%%%%.*%%%%########...#%%#*.............",
+    "..........%%%%...%%%%%##%####....#%###............",
+    ".....:+++%%%%++=-%%%%%%%%##%#.....*%###-..........",
+    ".....:%%#########*****++++++++===-:*%###+.........",
+    ".....:###################%%#######*****+++======-.",
+    ".....:###################%%#######*****+++======-."
+};
+
+void setCursorPosition(int x, int y) {
+    COORD coord = { (SHORT)x, (SHORT)y };
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void Cuadro_frame(int ancho, int alto, char bordeHorizontal) {
+    cout << "+";
+    for (int i = 0; i < ancho - 2; ++i) cout << bordeHorizontal;
+    cout << "+\n";
+    for (int i = 0; i < alto - 2; ++i) {
+        cout << "|";
+        for (int j = 0; j < ancho - 2; ++j) cout << " ";
+        cout << "|\n";
+    }
+    cout << "+";
+    for (int i = 0; i < ancho - 2; ++i) cout << bordeHorizontal;
+    cout << "+\n";
+}
+
+void dibujarSprite(int x, int y, const string sprite[], int filas, int maxAncho) {
+    for (int i = 0; i < filas; ++i) {
+        setCursorPosition(x, y + i);
+        cout << sprite[i].substr(0, maxAncho);
+    }
+}
+
+void textoprogresivo(const string& texto) {
+    int duracion = 50;
+    for (char c : texto) {
+        cout << c << flush;
+        if (c != ' ') {
+            Beep(600, duracion);
+        }
+        else {
+            this_thread::sleep_for(chrono::milliseconds(duracion));
+        }
+    }
+    cout << endl;
+}
+
+void esperarenter() {
+    cout << "\nPresiona Enter para continuar...";
+    string dummy;
+    getline(cin, dummy);
+}
+
+int main() {
+    int ancho = 53;
+    int alto = 18;
+
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, sprite2, 16, ancho - 2);
+    cout << "\n\n";
+    textoprogresivo("Este caso no es lo que parece,");
+    textoprogresivo("mi cliente no estuvo implicado");
+    esperarenter();
+
+    system("cls");
+
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, sprite1, 16, ancho - 2);
+    cout << "\n\n";
+    textoprogresivo("Mi cliente nunca estuvo en la");
+    textoprogresivo("escena del crimen, y aqui tengo");
+    textoprogresivo("las pruebas que lo demuestran.");
+    this_thread::sleep_for(chrono::milliseconds(1000));
+
+    return 0;
+}
