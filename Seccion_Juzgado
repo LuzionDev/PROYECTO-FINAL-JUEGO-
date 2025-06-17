@@ -2,9 +2,56 @@
 #include <thread>
 #include <chrono>
 #include <cstdlib>
+#define NOMINMAX
 #include <windows.h>
 #include <string>
+#include <conio.h>
+#include <vector>
 using namespace std;
+vector<string> dividirTexto(const string& texto, size_t anchoMax) {
+    vector<string> lineas;
+    size_t inicio = 0;
+
+    while (inicio < texto.size()) {
+        size_t fin = min(inicio + anchoMax, texto.size());
+        if (fin < texto.size() && texto[fin] != ' ') {
+            size_t ultimoEspacio = texto.rfind(' ', fin);
+            if (ultimoEspacio != string::npos && ultimoEspacio > inicio)
+                fin = ultimoEspacio;
+        }
+        lineas.push_back(texto.substr(inicio, fin - inicio));
+        inicio = texto.find_first_not_of(' ', fin);
+        if (inicio == string::npos) break;
+    }
+    return lineas;
+}
+const int ancho = 53;
+const int alto = 18;
+vector<string> quiz = {
+    "1. Mi cliente no es culpable",
+    "",
+    "2. Yo estuve ahi, lo puedo confirmar",
+    "",
+    "3. No se que decir",
+};
+string sprite3[] = {
+    "..................................................",
+    "..................:=+**##%%*-:....................",
+    "................**#%%*###%%#*-....................",
+    "...............=%%*-:-+#%*=##*....................",
+    "................+%#%+\\=*/=**#%%...................",
+    "..................%%#=--=*==*%%...................",
+    ".................%%@%%=-=+=++#%%%%................",
+    "................%%%%%%%#+++++##%%%%######%*.......",
+    ".............##########%%%%#==########%%%#%%......",
+    "............##**##**+*=-=*+*########%%%%%##%......",
+    "...........*+####%%%%%%##%%##%#####%%%%%%%%%%.....",
+    "..........**#####%%%%%%%%%%%##%##%%%%%%%%%%%%%%...",
+    ".........++###%#:-=#***%######%%%%%%%%%%%%%%%%%...",
+    ".......+*##%%:=++==+=%%%%%%%%%%%%%%#....####%%%...",
+    "......+######=:+++=+#%%%%%%%%%%%%%####.%%%%%%%#...",
+    "......#####%#=-+*%%%%%%%%%%%%%%%%%####%.%%%%*+....",
+};
 string sprite1[] = {
     "..................................................",
     "...........=*#%%%%##+-............................",
@@ -81,33 +128,73 @@ void textoprogresivo(const string& texto) {
     }
     cout << endl;
 }
+void Dialogo(const string& texto) {
+    vector<string> lineas = dividirTexto(texto, 50);
+
+    for (const string& linea : lineas) {
+        textoprogresivo(linea);
+    }
+}
 
 void esperarenter() {
     cout << "\nPresiona Enter para continuar...";
     string dummy;
     getline(cin, dummy);
 }
-
-int main() {
-    int ancho = 53;
-    int alto = 18;
-
-    Cuadro_frame(ancho, alto, '-');
-    dibujarSprite(1, 1, sprite2, 16, ancho - 2);
-    cout << "\n\n";
-    textoprogresivo("Este caso no es lo que parece,");
-    textoprogresivo("mi cliente no estuvo implicado");
-    esperarenter();
-
+void dialogo_escena(const string sprite[], const string& texto) {
     system("cls");
-
     Cuadro_frame(ancho, alto, '-');
-    dibujarSprite(1, 1, sprite1, 16, ancho - 2);
+    dibujarSprite(1, 1, sprite, 16, ancho - 2);
     cout << "\n\n";
-    textoprogresivo("Mi cliente nunca estuvo en la");
-    textoprogresivo("escena del crimen, y aqui tengo");
-    textoprogresivo("las pruebas que lo demuestran.");
-    this_thread::sleep_for(chrono::milliseconds(1000));
+    Dialogo(texto);
+}
+void dialogo_trivia(const string sprite[], int seed) {
+    system("cls");
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, sprite, 16, ancho - 2);
+    cout << "\n\n";
+    for (int j = 0; j < quiz.size(); ++j) {
+        setCursorPosition(4, 18 + j);
+        cout << quiz[j];
+    }
+    int i = 0;
+    int seleccion = 0;
+    int total = 3;
+    int y_inicio = 18;
+    while (true) {
+        for (int j = 0; j < total; ++j) {
+            setCursorPosition(2, y_inicio + j * 2);
+            cout << "   ";
+        }
+        setCursorPosition(2, y_inicio + seleccion * 2);
+        cout << "-->";
+        int tecla = _getch();
+        if (tecla == 0 || tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72) {
+                seleccion = (seleccion - 1 + total) % total;
+            }
+            else if (tecla == 80) {
+                seleccion = (seleccion + 1) % total;
+            }
+        }
+        else if (tecla == 13) {
+            setCursorPosition(4, y_inicio + total * 2 + 1);
+            cout << "Elegiste la opción " << seleccion + 1 << ": " << quiz[seleccion * 2];
+            break;
+        }
+    }
+}
+int main() {
+    dialogo_escena(sprite2, "Mi es totalmente inocente no deberia siquiera estar aqui");
+    esperarenter();
+    dialogo_escena(sprite1, "Ademas quien no a matado a una persona en su vida, digo que deberian desestimar este caso");
+    esperarenter();
+    dialogo_escena(sprite3, "Inaceptable, El tipo si estuvo involucrado en el caso");
+    esperarenter();
+    dialogo_trivia(sprite3, 5);
+
+    Sleep(1000);
 
     return 0;
 }
