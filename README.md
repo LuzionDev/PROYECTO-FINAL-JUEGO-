@@ -1,2 +1,2 @@
 # PROYECTO-FINAL-JUEGO-
-Presentar avances del proyecto final
+Toda la parte de seccion juzgado fue escrita y dirigida por Mateo Samaniego, todos los derechos reservados
