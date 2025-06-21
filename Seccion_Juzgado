@@ -27,13 +27,15 @@ vector<string> dividirTexto(const string& texto, size_t anchoMax) {
 }
 const int ancho = 53;
 const int alto = 18;
-vector<string> quiz = {
-    "1. Mi cliente no es culpable",
-    "",
-    "2. Yo estuve ahi, lo puedo confirmar",
-    "",
-    "3. No se que decir",
-};
+vector<string> quiz(string opcion1, string opcion2, string opcion3) {
+    return {
+        "1. " + opcion1,
+        "",
+        "2. " + opcion2,
+        "",
+        "3. " + opcion3
+    };
+}
 string sprite3[] = {
     "..................................................",
     "..................:=+**##%%*-:....................",
@@ -148,26 +150,42 @@ void dialogo_escena(const string sprite[], const string& texto) {
     cout << "\n\n";
     Dialogo(texto);
 }
-void dialogo_trivia(const string sprite[], int seed) {
+int dialogo_trivia(const string sprite[], int seed, string opcion1, string opcion2, string opcion3, int respuesta) {
     system("cls");
     Cuadro_frame(ancho, alto, '-');
     dibujarSprite(1, 1, sprite, 16, ancho - 2);
+    int a = 0;
     cout << "\n\n";
-    for (int j = 0; j < quiz.size(); ++j) {
+
+    // Crear las opciones a partir de los argumentos
+    vector<string> opciones = {
+        "1. " + opcion1,
+        "",
+        "2. " + opcion2,
+        "",
+        "3. " + opcion3
+    };
+
+    // Mostrar opciones
+    for (int j = 0; j < opciones.size(); ++j) {
         setCursorPosition(4, 18 + j);
-        cout << quiz[j];
+        cout << opciones[j];
     }
-    int i = 0;
+
     int seleccion = 0;
     int total = 3;
     int y_inicio = 18;
     while (true) {
+        // Borrar flechas anteriores
         for (int j = 0; j < total; ++j) {
             setCursorPosition(2, y_inicio + j * 2);
             cout << "   ";
         }
+
+        // Flecha actual
         setCursorPosition(2, y_inicio + seleccion * 2);
         cout << "-->";
+
         int tecla = _getch();
         if (tecla == 0 || tecla == 224) {
             tecla = _getch();
@@ -180,11 +198,16 @@ void dialogo_trivia(const string sprite[], int seed) {
         }
         else if (tecla == 13) {
             setCursorPosition(4, y_inicio + total * 2 + 1);
-            cout << "Elegiste la opción " << seleccion + 1 << ": " << quiz[seleccion * 2];
+            if (seleccion == respuesta) {
+                a = 1;
+            }
             break;
         }
     }
+    return a;
 }
+
+
 int main() {
     dialogo_escena(sprite2, "Mi es totalmente inocente no deberia siquiera estar aqui");
     esperarenter();
@@ -192,9 +215,23 @@ int main() {
     esperarenter();
     dialogo_escena(sprite3, "Inaceptable, El tipo si estuvo involucrado en el caso");
     esperarenter();
-    dialogo_trivia(sprite3, 5);
 
-    Sleep(1000);
+    int correcto = dialogo_trivia(
+        sprite3,
+        5,
+        "quien es el acusado?",
+        "Segun los derechos constitucionales, este caso deberia de ser desestimado?",
+        "que hay para comer?",
+        1
+    );
 
+    if (correcto) {
+        dialogo_escena(sprite3, "Muy bien, parece que estas prestando atencion.");
+    }
+    else {
+        dialogo_escena(sprite3, "Eso no es correcto... Seguro que estabas escuchando?");
+    }
+
+    esperarenter();
     return 0;
 }
