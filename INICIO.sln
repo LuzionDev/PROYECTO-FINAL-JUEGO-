@@ -1,6 +1,7 @@
 #include <iostream>
 #include <conio.h>
 #include <windows.h>
+#pragma comment(lib, "winmm.lib")
 #include <vector>
 #include <string>
 #include <chrono>
@@ -9,185 +10,201 @@ string opciones[] = { "JUGAR", "CREDITOS", "SALIR" };
 int seleccion = 0;
 const int NUM_OPCIONES = 3;
 int getConsoleWidth() {
-  CONSOLE_SCREEN_BUFFER_INFO csbi;
-  int columns = 80;
-  if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
-    columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-  }
-  return columns;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    int columns = 80;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+        columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+    return columns;
 }
 void gotoXY(int x, int y) {
-  COORD coord = { (SHORT)x, (SHORT)y };
-  SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    COORD coord = { (SHORT)x, (SHORT)y };
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 void limpiarPantalla() {
-  system("cls");
+    system("cls");
+
+}
+void reproducirMusica(const char* archivo) {
+    PlaySound(TEXT("musica.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+}
+
+void pararMusica() {
+    PlaySound(NULL, NULL, 0);
 }
 void imprimirCentrado(string texto) {
-  int consolaAncho = getConsoleWidth();
-  int espacio = (consolaAncho - texto.size()) / 2;
-  for (int i = 0; i < espacio; i++) cout << " ";
-  cout << texto << endl;
+    int consolaAncho = getConsoleWidth();
+    int espacio = (consolaAncho - texto.size()) / 2;
+    for (int i = 0; i < espacio; i++) cout << " ";
+    cout << texto << endl;
 }
 void mostrarCreditos() {
-  limpiarPantalla();
-  imprimirCentrado("\n\n\n\nHECHO POR:");
-  imprimirCentrado("MATHIAS DIAZ");
-  imprimirCentrado("MATEO SAMANIEGO");
-  imprimirCentrado("VALERIA ALMANZA");
-  cout << "\n\n";
-  imprimirCentrado("Presiona una tecla para volver al menu...");
-  _getch();
+    limpiarPantalla();
+    imprimirCentrado("\n\n\n\nHECHO POR:");
+    imprimirCentrado("MATHIAS DIAZ");
+    imprimirCentrado("MATEO SAMANIEGO");
+    imprimirCentrado("VALERIA ALMANZA");
+    cout << "\n\n";
+    imprimirCentrado("Presiona una tecla para volver al menu...");
+    _getch();
 }
 void juego(int maxEvidencias, int tiempoLimite) {
-  const int ancho = 45;
-  const int alto = 18;
-  int recogidas = 0;
-  int jugadorX = ancho / 2;
-  int jugadorY = alto / 2;
-  vector<pair<int, int>> evidencias;
-  srand(time(0));
-  for (int i = 0; i < maxEvidencias; i++) {
-    int ex = rand() % (ancho - 2) + 1;
-    int ey = rand() % (alto - 2) + 1;
-    evidencias.push_back({ ex, ey });
-  }
-  auto inicio = chrono::steady_clock::now();
-  bool todasRecogidas = false;
-  while (true) {
-    system("cls");
-    gotoXY(0, 0);
-    cout << "TOMA TODAS LAS EVIDENCIAS QUE PUEDAS";
-    auto ahora = chrono::steady_clock::now();
-    int segundos = chrono::duration_cast<chrono::seconds>(ahora - inicio).count();
-    int restante = tiempoLimite - segundos;
-    gotoXY(0, 1);
-    cout << "Tiempo restante: " << restante << "s  Evidencias: " << recogidas << "/" << maxEvidencias;
-    for (int y = 0; y <= alto; y++) {
-      for (int x = 0; x <= ancho; x++) {
-        if (y == 0 || y == alto || x == 0 || x == ancho) {
-          gotoXY(x + 5, y + 3);
-          cout << "#";
+    const int ancho = 45;
+    const int alto = 18;
+    int recogidas = 0;
+    int jugadorX = ancho / 2;
+    int jugadorY = alto / 2;
+    vector<pair<int, int>> evidencias;
+    srand(time(0));
+    for (int i = 0; i < maxEvidencias; i++) {
+        int ex = rand() % (ancho - 2) + 1;
+        int ey = rand() % (alto - 2) + 1;
+        evidencias.push_back({ ex, ey });
+    }
+    auto inicio = chrono::steady_clock::now();
+    bool todasRecogidas = false;
+    while (true) {
+        system("cls");
+        gotoXY(0, 0);
+        cout << "TOMA TODAS LAS EVIDENCIAS QUE PUEDAS";
+        auto ahora = chrono::steady_clock::now();
+        int segundos = chrono::duration_cast<chrono::seconds>(ahora - inicio).count();
+        int restante = tiempoLimite - segundos;
+        gotoXY(0, 1);
+        cout << "Tiempo restante: " << restante << "s  Evidencias: " << recogidas << "/" << maxEvidencias;
+        for (int y = 0; y <= alto; y++) {
+            for (int x = 0; x <= ancho; x++) {
+                if (y == 0 || y == alto || x == 0 || x == ancho) {
+                    gotoXY(x + 5, y + 3);
+                    cout << "#";
+                }
+            }
         }
-      }
+        for (auto& e : evidencias) {
+            gotoXY(e.first + 5, e.second + 3);
+            cout << "*";
+        }
+        gotoXY(jugadorX + 5, jugadorY + 3);
+        cout << "YO";
+        if (segundos >= tiempoLimite) break;
+        if (recogidas >= maxEvidencias) {
+            todasRecogidas = true;
+            break;
+        }
+        if (_kbhit()) {
+            char tecla = _getch();
+            if (tecla == -32) {
+                tecla = _getch();
+                if (tecla == 72 && jugadorY > 1) jugadorY--;
+                else if (tecla == 80 && jugadorY < alto - 1) jugadorY++;
+                else if (tecla == 75 && jugadorX > 1) jugadorX--;
+                else if (tecla == 77 && jugadorX < ancho - 2) jugadorX++;
+            }
+        }
+        for (int i = 0; i < evidencias.size(); i++) {
+            int dx = abs(jugadorX - evidencias[i].first);
+            int dy = abs(jugadorY - evidencias[i].second);
+            if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 0 && dy == 0)) {
+                evidencias.erase(evidencias.begin() + i);
+                recogidas++;
+                break;
+            }
+        }
+
+
+        Sleep(50);
     }
-    for (auto& e : evidencias) {
-      gotoXY(e.first + 5, e.second + 3);
-      cout << "*";
+    system("cls");
+    if (todasRecogidas) {
+        imprimirCentrado("\n\n\n\n\nCONSEGUISTE TODAS, LISTO PARA EL CASO");
+        Beep(880, 200); // La
+        Beep(988, 200); // Si
+        Beep(1047, 300); // Do alto
     }
-    gotoXY(jugadorX + 5, jugadorY + 3);
-    cout << "YO";
-    if (segundos >= tiempoLimite) break;
-    if (recogidas >= maxEvidencias) {
-      todasRecogidas = true;
-      break;
+    else {
+        imprimirCentrado("\n\n\n\n\nTiempo agotado. Recolectaste " + to_string(recogidas) + " evidencias.");
+        Beep(440, 300); // La más grave
+        Beep(392, 300); // Sol
+        Beep(349, 500); // Fa
     }
-    if (_kbhit()) {
-      char tecla = _getch();
-      if (tecla == -32) {
-        tecla = _getch();
-        if (tecla == 72 && jugadorY > 1) jugadorY--;
-        else if (tecla == 80 && jugadorY < alto - 1) jugadorY++;
-        else if (tecla == 75 && jugadorX > 1) jugadorX--;
-        else if (tecla == 77 && jugadorX < ancho - 2) jugadorX++;
-      }
-    }
-    for (int i = 0; i < evidencias.size(); i++) {
-      if (jugadorX == evidencias[i].first && jugadorY == evidencias[i].second) {
-        evidencias.erase(evidencias.begin() + i);
-        recogidas++;
-        break;
-      }
-    }
-    Sleep(50);
-  }
-  system("cls");
-  if (todasRecogidas) {
-    imprimirCentrado("\n\n\n\n\nCONSEGUISTE TODAS, LISTO PARA EL CASO");
-    Beep(880, 200); // La
-    Beep(988, 200); // Si
-    Beep(1047, 300); // Do alto
-  } else {
-    imprimirCentrado("\n\n\n\n\nTiempo agotado. Recolectaste " + to_string(recogidas) + " evidencias.");
-    Beep(440, 300); // La más grave
-    Beep(392, 300); // Sol
-    Beep(349, 500); // Fa
-  }
-  cout << "\n\n";
-  imprimirCentrado("Espera un momento...");
-  Sleep(3000);
-  system("cls");
-  imprimirCentrado("\n\n\n\n\nPresiona una tecla para volver al menu...");
-  _getch();
+    cout << "\n\n";
+    imprimirCentrado("Espera un momento...");
+    Sleep(3000);
+    system("cls");
+    imprimirCentrado("\n\n\n\n\nPresiona una tecla para volver al menu...");
+    _getch();
 }
 void menuDificultad() {
-  string modos[] = { "NORMAL", "DIFICIL" };
-  int seleccionModo = 0;
-  const int NUM_MODOS = 2;
-  bool enMenu = true;
-  while (enMenu) {
-    limpiarPantalla();
-    imprimirCentrado("=== MODO DE JUEGO ===\n");
-    cout << endl;
-    for (int i = 0; i < NUM_MODOS; i++) {
-      string linea;
-      if (i == seleccionModo)
-        linea = ">> " + modos[i] + " <<";
-      else
-        linea = "  " + modos[i];
-      imprimirCentrado(linea);
+    pararMusica();
+    string modos[] = { "NORMAL", "DIFICIL" };
+    int seleccionModo = 0;
+    const int NUM_MODOS = 2;
+    bool enMenu = true;
+    while (enMenu) {
+        limpiarPantalla();
+        imprimirCentrado("=== MODO DE JUEGO ===\n");
+        cout << endl;
+        for (int i = 0; i < NUM_MODOS; i++) {
+            string linea;
+            if (i == seleccionModo)
+                linea = ">> " + modos[i] + " <<";
+            else
+                linea = "  " + modos[i];
+            imprimirCentrado(linea);
+        }
+        char tecla = _getch();
+        if (tecla == -32) {
+            tecla = _getch();
+            if (tecla == 72) seleccionModo = (seleccionModo - 1 + NUM_MODOS) % NUM_MODOS;
+            else if (tecla == 80) seleccionModo = (seleccionModo + 1) % NUM_MODOS;
+        }
+        else if (tecla == 13) {
+            if (modos[seleccionModo] == "NORMAL") {
+                juego(5, 15);
+            }
+            else if (modos[seleccionModo] == "DIFICIL") {
+                juego(7, 15);
+            }
+            enMenu = false;
+        }
     }
-    char tecla = _getch();
-    if (tecla == -32) {
-      tecla = _getch();
-      if (tecla == 72) seleccionModo = (seleccionModo - 1 + NUM_MODOS) % NUM_MODOS;
-      else if (tecla == 80) seleccionModo = (seleccionModo + 1) % NUM_MODOS;
-    }
-    else if (tecla == 13) {
-      if (modos[seleccionModo] == "NORMAL") {
-        juego(5, 15);
-      }
-      else if (modos[seleccionModo] == "DIFICIL") {
-        juego(7, 25);
-      }
-      enMenu = false;
-    }
-  }
 }
 void mostrarMenu() {
-  limpiarPantalla();
-  imprimirCentrado("=== DEFENSE LIMIT ===\n");
-  cout << endl;
-  for (int i = 0; i < NUM_OPCIONES; i++) {
-    string linea;
-    if (i == seleccion)
-      linea = ">> " + opciones[i] + " <<";
-    else
-      linea = "  " + opciones[i];
-    imprimirCentrado(linea);
-  }
+    limpiarPantalla();
+    imprimirCentrado("=== DEFENSE LIMIT ===\n");
+    cout << endl;
+    for (int i = 0; i < NUM_OPCIONES; i++) {
+        string linea;
+        if (i == seleccion)
+            linea = ">> " + opciones[i] + " <<";
+        else
+            linea = "  " + opciones[i];
+        imprimirCentrado(linea);
+    }
 }
 int main() {
-  bool ejecutando = true;
-  while (ejecutando) {
-    mostrarMenu();
-    char tecla = _getch();
-    if (tecla == -32) {
-      tecla = _getch();
-      if (tecla == 72) seleccion = (seleccion - 1 + NUM_OPCIONES) % NUM_OPCIONES;
-      else if (tecla == 80) seleccion = (seleccion + 1) % NUM_OPCIONES;
+    reproducirMusica("musica.wav");
+    bool ejecutando = true;
+    while (ejecutando) {
+        mostrarMenu();
+        char tecla = _getch();
+        if (tecla == -32) {
+            tecla = _getch();
+            if (tecla == 72) seleccion = (seleccion - 1 + NUM_OPCIONES) % NUM_OPCIONES;
+            else if (tecla == 80) seleccion = (seleccion + 1) % NUM_OPCIONES;
+        }
+        else if (tecla == 13) {
+            if (opciones[seleccion] == "JUGAR") {
+                menuDificultad();
+            }
+            else if (opciones[seleccion] == "CREDITOS") {
+                mostrarCreditos();
+            }
+            else if (opciones[seleccion] == "SALIR") {
+                ejecutando = false;
+            }
+        }
     }
-    else if (tecla == 13) {
-      if (opciones[seleccion] == "JUGAR") {
-        menuDificultad();
-      }
-      else if (opciones[seleccion] == "CREDITOS") {
-        mostrarCreditos();
-      }
-      else if (opciones[seleccion] == "SALIR") {
-        ejecutando = false;
-      }
-    }
-  }
-  return 0;
+    pararMusica();
+    return 0;
 }
