@@ -84,8 +84,16 @@ void juego(int maxEvidencias, int tiempoLimite) {
             gotoXY(e.first + 5, e.second + 3);
             cout << "*";
         }
-        gotoXY(jugadorX + 5, jugadorY + 3);
-        cout << "YO";
+        vector<string> Pj = {
+            " O ",
+            "/|\\",
+            "/ \\",
+        };
+        for (int i = 3;i < 6; i++) {
+            gotoXY(jugadorX + 5, jugadorY + i);
+            int pjs = i - 3;
+            cout << Pj[pjs];    
+        }
         if (segundos >= tiempoLimite) break;
         if (recogidas >= maxEvidencias) {
             todasRecogidas = true;
@@ -101,15 +109,24 @@ void juego(int maxEvidencias, int tiempoLimite) {
                 else if (tecla == 77 && jugadorX < ancho - 2) jugadorX++;
             }
         }
+        vector<pair<int, int>> partesJugador = {
+          {jugadorX, jugadorY},
+          {jugadorX, jugadorY + 1},
+          {jugadorX, jugadorY + 2}
+        };
+
         for (int i = 0; i < evidencias.size(); i++) {
-            int dx = abs(jugadorX - evidencias[i].first);
-            int dy = abs(jugadorY - evidencias[i].second);
-            if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 0 && dy == 0)) {
-                evidencias.erase(evidencias.begin() + i);
-                recogidas++;
-                break;
+            for (auto& parte : partesJugador) {
+                int dx = abs(parte.first - evidencias[i].first);
+                int dy = abs(parte.second - evidencias[i].second);
+                if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 0 && dy == 0)) {
+                    evidencias.erase(evidencias.begin() + i);
+                    recogidas++;
+                    goto salir_loop;
+                }
             }
         }
+    salir_loop:;
 
 
         Sleep(50);
