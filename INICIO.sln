@@ -92,7 +92,7 @@ void juego(int maxEvidencias, int tiempoLimite) {
         for (int i = 3;i < 6; i++) {
             gotoXY(jugadorX + 5, jugadorY + i);
             int pjs = i - 3;
-            cout << Pj[pjs];    
+            cout << Pj[pjs];
         }
         if (segundos >= tiempoLimite) break;
         if (recogidas >= maxEvidencias) {
@@ -152,7 +152,6 @@ void juego(int maxEvidencias, int tiempoLimite) {
     _getch();
 }
 void menuDificultad() {
-    pararMusica();
     string modos[] = { "NORMAL", "DIFICIL" };
     int seleccionModo = 0;
     const int NUM_MODOS = 2;
@@ -177,9 +176,11 @@ void menuDificultad() {
         }
         else if (tecla == 13) {
             if (modos[seleccionModo] == "NORMAL") {
+                pararMusica();
                 juego(5, 15);
             }
             else if (modos[seleccionModo] == "DIFICIL") {
+                pararMusica();
                 juego(7, 15);
             }
             enMenu = false;
@@ -222,6 +223,6 @@ int main() {
             }
         }
     }
-    pararMusica();
+
     return 0;
 }
