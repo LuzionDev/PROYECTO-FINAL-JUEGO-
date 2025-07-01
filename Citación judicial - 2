@@ -1,1 +1,398 @@
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <cstdlib>
+#define NOMINMAX
+#include <windows.h>
+#include <string>
+#include <conio.h>
+#include <vector>
+#include <limits>
 
+using namespace std;
+
+vector<string> dividirTexto(const string& texto, size_t anchoMax) {
+    vector<string> lineas;
+    size_t inicio = 0;
+
+    while (inicio < texto.size()) {
+        size_t fin = min(inicio + anchoMax, texto.size());
+        if (fin < texto.size() && texto[fin] != ' ') {
+            size_t ultimoEspacio = texto.rfind(' ', fin);
+            if (ultimoEspacio != string::npos && ultimoEspacio > inicio)
+                fin = ultimoEspacio;
+        }
+        lineas.push_back(texto.substr(inicio, fin - inicio));
+        inicio = texto.find_first_not_of(' ', fin);
+        if (inicio == string::npos) break;
+    }
+    return lineas;
+}
+
+const int ancho = 53;
+const int alto = 18;
+
+string spriteDraCamilaVillegas[] = { // Abogada Rival Camila Villegas
+"..........................................:---==::",
+"..................:::::::................:=:-==::..",
+"................:-+*##%#*:..............:-:=+=-+=:.",
+"...............:+*##:::=#%=..........:-+-::-:-+++-:",
+"..............:+#*+:-*+=#@+:......::+#+==--===+=::.",
+"..............:*==:::::-+-:.....:+####*-+=+=::::...",
+".............:-#%#=::-**=:::::-+##%%%%%+==+:.......",
+".............:*%%%==::-=-##%###%%%@@@@@%++::.......",
+":::::::::::::=%%%*-==+=-#%%%%%%%@@@%#*+++-:::::::::",
+"...........:-#%%#++=--+*%%%@@@@%#=-::..............",
+":::::::::::-#%%**++:-#%%@@@@@%=...:::::::::::::::::",
+".........:=###:-:=+**#%@%@@%*:.....................",
+".......::+#%##*==%##%%@%@@@#:......................",
+"......:=#%%@@@@@%@@@@@%@@@%=.......................",
+"...:::##+*%@%@%%%%%%%%%@@%*:.......................",
+"::::-##-+%%%%%%%#%%%%%@@%%:::::::::::::::::::::::::",
+"....::::-:==+%@@%@@@@@@@%:.........................",
+"......:::=++#@%%%%%@@@@@%:.........................",
+"...::-=-+==*@%%%#%%%@@@@%=.........................",
+};
+
+string spriteLicJavierMontero[] = { // Abogado defensor Lic. Javier Montero
+    "..................................................",
+    "...........=*#%%%%##+-............................",
+    "...........:+%%##+==-+:....................--=====",
+    ".............+*+===+=-................:==--==++--:",
+    ".............-====++=:............-=*##+======++=:",
+    ".............--==+*--==-:.:--=+####%%%===+=::...",
+    "...........-+=--+%%%%%%%######%%%%%%%%%%#+%*......",
+    ".......:=%%+=%%%%%%%%%%%%%%%%%%%%%#+=-:.......",
+    "......=%%%%#**#%%%%%%%%%%%%%%%%%%#+=:.............",
+    ".....:#%%%%##%%%%%%%%%%%%%%#*=-:..................",
+    "....:*%%%%%%%%%%%%%%%%%%%+:.......................",
+    "....+%%%%%%%%%%%%%%%%%%#-.........................",
+    "...=%%%%%%@%%%%%%%%%%##+..........................",
+    "..:#%%%@%%%%%%%%%%%%%#*=..........................",
+    ".:+%%%%%%%%%%%%%%%%%##+...........................",
+    ".=%%%%#%%%%%%%%%%%%%##+...........................",
+};
+
+string spriteJuezOmarHerrera[] = { // JUEZ Omar Herrera
+    "........................:.........................",
+    "........................:%%%%%#=..................",
+    ".........................#=*=-:+..................",
+    ".......................=#==-:-:...................",
+    "..................%%%%%%#-==::....................",
+    ".................%%###%%%:=+:###-.................",
+    "...............%%%##%####.#.#####:................",
+    "..............%%%##%######*+###%##................",
+    ".............%%%%#%%%#########%%%#*...............",
+    "............%%%%#%%%%%%%%%###-.#%%#*..............",
+    "...........%%%%.%%%%########...#%%#.............",
+    "..........%%%%...%%%%%##%####....#%###............",
+    ".....:+++%%%%++=-%%%%%%%%##%#.....*%###-..........",
+    ".....:%%#########**++++++++===-:%###+.........",
+    ".....:###################%%#######***+++======-.",
+    ".....:###################%%#######***+++======-."
+};
+
+void setCursorPosition(int x, int y) {
+    COORD coord = { (SHORT)x, (SHORT)y };
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void Cuadro_frame(int ancho, int alto, char bordeHorizontal) {
+    cout << "+";
+    for (int i = 0; i < ancho - 2; ++i) cout << bordeHorizontal;
+    cout << "+\n";
+    for (int i = 0; i < alto - 2; ++i) {
+        cout << "|";
+        for (int j = 0; j < ancho - 2; ++j) cout << " ";
+        cout << "|\n";
+    }
+    cout << "+";
+    for (int i = 0; i < ancho - 2; ++i) cout << bordeHorizontal;
+    cout << "+\n";
+}
+
+void dibujarSprite(int x, int y, const string sprite[], int filas, int maxAncho) {
+    for (int i = 0; i < filas; ++i) {
+        setCursorPosition(x, y + i);
+        cout << sprite[i].substr(0, maxAncho);
+    }
+}
+
+void textoprogresivo(const string& texto) {
+    int duracion = 50;
+    for (char c : texto) {
+        cout << c << flush;
+        if (c != ' ') {
+            Beep(600, duracion);
+        }
+        else {
+            this_thread::sleep_for(chrono::milliseconds(duracion));
+        }
+    }
+}
+
+int Dialogo(const string& texto, int start_y = -1) {
+    vector<string> lineas = dividirTexto(texto, 50);
+    int current_y = (start_y == -1) ? -1 : start_y; 
+
+    for (size_t i = 0; i < lineas.size(); ++i) {
+        if (current_y != -1) {
+            setCursorPosition(0, current_y + i); 
+        }
+        textoprogresivo(lineas[i]);
+        cout << endl; 
+    }
+    return lineas.size(); 
+}
+
+void esperarenter() {
+    cout << "\nPresiona Enter para continuar...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string dummy;
+    getline(cin, dummy);
+}
+
+void dialogo_escena(const string sprite[], const string& texto) {
+    system("cls");
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, sprite, 16, ancho - 2);
+    setCursorPosition(0, alto); 
+    Dialogo(texto);
+}
+
+
+bool analizarLogsMedicos() {
+    system("cls");
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, spriteJuezOmarHerrera, 16, ancho - 2); // Sprite del juez durante el minijuego
+    cout << "\n\n";
+    Dialogo("JUEZ OMAR HERRERA: Abogado, necesita descifrar que IP manipulo los registros.");
+    Dialogo("MINIJUEGO: ANALIZAR LOGS MEDICOS");
+    Dialogo("Encuentre la IP que falsifico los datos. La IP es un numero de 3 digitos.");
+    Dialogo("Opciones de IP sospechosas:");
+    Dialogo("1. 192.168.1.101");
+    Dialogo("2. 192.168.1.205"); // Respuesta correcta
+    Dialogo("3. 192.168.1.137");
+
+    cout << "\nSelecciona la IP correcta (1, 2, o 3): ";
+    int choice;
+    cin >> choice;
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (choice == 2) { //192.168.1.205 respuesta de IP correcta
+        Dialogo("¡Correcto! Ha encontrado la IP que falsifico los datos.");
+        Beep(523, 200);
+        Beep(659, 200);
+        Beep(784, 300);
+        Sleep(2000);
+        return true;
+    }
+    else {
+        Dialogo("Incorrecto. Esa no es la IP. Pierdes una oportunidad valiosa.");
+        Beep(440, 300);
+        Beep(349, 300);
+        Sleep(2000);
+        return false;
+    }
+}
+
+int dialogo_trivia(const string sprite[], const string& question,
+    const string& opcion1, const string& opcion2, const string& opcion3,
+    int respuestaCorrectaIdx) { 
+    system("cls");
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, sprite, 16, ancho - 2);
+
+    int question_start_y = alto; 
+
+    setCursorPosition(0, question_start_y); 
+    int lines_drawn_for_question = Dialogo(question, question_start_y); 
+
+    int y_inicio_opciones = question_start_y + lines_drawn_for_question + 1; 
+
+    vector<string> opciones = {
+        "1. " + opcion1,
+        "2. " + opcion2,
+        "3. " + opcion3
+    };
+
+    // Dibuja las opciones
+    for (int j = 0; j < opciones.size(); ++j) {
+        setCursorPosition(4, y_inicio_opciones + j * 2); 
+        cout << opciones[j];
+    }
+
+    int seleccion = 0;
+    int total = 3;
+    int y_opcion_cursor_offset = y_inicio_opciones; 
+
+    while (true) {
+        for (int j = 0; j < total; ++j) {
+            setCursorPosition(2, y_opcion_cursor_offset + j * 2);
+            cout << "   "; /
+        }
+
+        setCursorPosition(2, y_opcion_cursor_offset + seleccion * 2);
+        cout << "-->";
+
+        int tecla = _getch();
+        if (tecla == 0 || tecla == 224) { 
+            tecla = _getch();
+            if (tecla == 72) {
+                seleccion = (seleccion - 1 + total) % total;
+            }
+            else if (tecla == 80) { 
+                seleccion = (seleccion + 1) % total;
+            }
+        }
+        else if (tecla == 13) { 
+            for (int j = 0; j < total; ++j) {
+                setCursorPosition(2, y_opcion_cursor_offset + j * 2);
+                cout << "   ";
+            }
+            setCursorPosition(0, y_opcion_cursor_offset + total * 2 + 1); 
+
+            if (seleccion == respuestaCorrectaIdx) {
+                return 1;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
+int main() {
+    int score = 0;
+    dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Buenos dias a todos. Damos inicio al caso de 'Negligencia Medica'.");
+    esperarenter();
+    dialogo_escena(spriteJuezOmarHerrera, "La acusada es la Dra. Sofia Marquez, cirujana con 20 años de experiencia.");
+    esperarenter();
+    dialogo_escena(spriteJuezOmarHerrera, "La acusacion es la muerte de un paciente por 'sobredosis de anestesia' durante una operacion.");
+    esperarenter();
+    dialogo_escena(spriteLicJavierMontero, "LIC. MONTERO: Mi clienta reporto el error. Que el monitor de anestesia estaba fallando, pero el hospital lo oculto.");
+    esperarenter();
+
+    // Abogado Rival
+    dialogo_escena(spriteDraCamilaVillegas, "DRA. CAMILA VILLEGAS (Abogada Rival): ¿No es negligencia no revisar manualmente la anestesia, Abogado?");
+    esperarenter();
+
+    int res1 = dialogo_trivia(
+        spriteLicJavierMontero,
+        "¿Como responde a la acusacion de no verificar manualmente?",
+        "Presentar correo: 'La Dra. Marquez advirtio sobre el monitor hace un mes. ¿No es esto encubrimiento del hospital?'", // respuesta correcta
+        "Analizar registros: 'Los logs muestran que el monitor marco 'OK' cuando estaba fallando. ¡Aqui esta el reporte tecnico!'",
+        "Contrainterrogar a Jorge: 'Usted preparo la anestesia, ¿verdad? ¿Y no fue suspendido antes por errores?'",
+        0
+    );
+
+    if (res1) {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Interesante. Esa evidencia es relevante.");
+        score++;
+    }
+    else {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Esa no es una respuesta convincente. Prosiga.");
+    }
+    esperarenter();
+
+    // Abogado Rival
+    dialogo_escena(spriteDraCamilaVillegas, "DRA. CAMILA VILLEGAS (Abogada Rival): ¿Por que su cliente no denuncio el fallo antes de operar?");
+    esperarenter();
+
+    int res2 = dialogo_trivia(
+        spriteLicJavierMontero, // Abogado
+        "¿Como defiende la falta de denuncia previa de la Dra. Marquez?",
+        "Contrainterrogar a Jorge: 'Usted preparo la anestesia, ¿verdad? ¿Y no fue suspendido antes por errores?'",
+        "Analizar registros: 'Los logs muestran que el monitor marco 'OK' cuando estaba fallando. ¡Aqui esta el reporte tecnico!'", // respuesta correcta
+        "Juez, el protocolo del hospital no permitia exigir otro monitor sin autorizacion.",
+        1
+    );
+
+    if (res2) {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Muy bien, abogado. Proceda con el analisis de registros.");
+        if (analizarLogsMedicos()) { // Llama al minijuego
+            dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: El reporte tecnico confirma el fallo conocido del monitor.");
+            dialogo_escena(spriteJuezOmarHerrera, "DR. FELIPE RIOS (testigo sorpresa): Ademas, el hospital sabia del fallo.");
+            score++;
+        }
+        else {
+            dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: No pudo demostrar la manipulacion de registros.");
+        }
+    }
+    else {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Esa defensa no es suficiente para este punto.");
+    }
+    esperarenter();
+
+    // Primera pregunta del juez
+    dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Abogado, si su cliente es inocente, ¿quien manipulo los registros?");
+    esperarenter();
+
+    int res3 = dialogo_trivia(
+        spriteLicJavierMontero, // Abogado
+        "¿Como responde a la pregunta sobre la manipulacion de registros?",
+        "El hospital altero los registros para evitar demandas.", // respuesta correcta
+        "El enfermero Jorge Torres es el culpable.",
+        "No tenemos esa informacion aun, su señoría.",
+        0
+    );
+
+    if (res3) {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Es una acusacion seria, Abogado, pero basada en la evidencia presentada.");
+        score++;
+    }
+    else {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Su respuesta es insatisfactoria, Abogado.");
+    }
+    esperarenter();
+
+    //Segunda pregunta del juez
+    dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: ¿Por que su cliente no exigio otro monitor si sospechaba del fallo?");
+    esperarenter();
+
+    int res4 = dialogo_trivia(
+        spriteLicJavierMontero, // Abogado
+        "¿Como justifica que la Dra. no exigiera otro monitor?",
+        "La Dra. confio en el equipo defectuoso, fue un error.",
+        "El protocolo del hospital no lo permitia sin autorizacion.", // respuesta correcta
+        "No habia mas monitores disponibles en ese momento.",
+        1 // El índice 1 es la opción correcta
+    );
+
+    if (res4) {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Comprendo la limitacion.");
+        score++;
+    }
+    else {
+        dialogo_escena(spriteJuezOmarHerrera, "JUEZ OMAR HERRERA: Su defensa en este punto es debil.");
+    }
+    esperarenter();
+
+    // Veredicto final
+    system("cls");
+    Cuadro_frame(ancho, alto, '-');
+    dibujarSprite(1, 1, spriteJuezOmarHerrera, 16, ancho - 2);
+    cout << "\n\n";
+
+    if (score >= 3) { // El jugador necesita al menos 3 respuestas correctas (de las 4 preguntas principales + minijuego) para ganar
+        Dialogo("JUEZ OMAR HERRERA: Considerando las pruebas y argumentos presentados...");
+        esperarenter();
+        Dialogo("JUEZ OMAR HERRERA: La Dra. Sofia Marquez es ABSUELTA de todos los cargos.");
+        Dialogo("Se ordena una investigacion exhaustiva al hospital por encubrimiento y manipulacion de evidencia.");
+        Beep(880, 200);
+        Beep(988, 200);
+        Beep(1047, 300);
+    }
+    else {
+        Dialogo("JUEZ OMAR HERRERA: Despues de considerar todos los argumentos y pruebas...");
+        esperarenter();
+        Dialogo("JUEZ OMAR HERRERA: La evidencia presentada no fue suficiente para refutar la negligencia.");
+        Dialogo("La Dra. Sofia Marquez pierde su licencia medica.");
+        Beep(440, 300);
+        Beep(392, 300);
+        Beep(349, 500);
+    }
+
+    esperarenter();
+    return 0;
+}
