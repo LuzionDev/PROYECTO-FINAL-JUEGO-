@@ -230,7 +230,7 @@ int dialogo_trivia(const string sprite[], const string& question,
     while (true) {
         for (int j = 0; j < total; ++j) {
             setCursorPosition(2, y_opcion_cursor_offset + j * 2);
-            cout << "   "; /
+            cout << "   "; 
         }
 
         setCursorPosition(2, y_opcion_cursor_offset + seleccion * 2);
